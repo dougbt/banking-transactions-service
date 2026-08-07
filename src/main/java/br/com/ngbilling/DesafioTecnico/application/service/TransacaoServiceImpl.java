@@ -38,14 +38,14 @@ public class TransacaoServiceImpl implements TransacaoService {
         if (strategy == null) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
-                    "Forma de pagamento inválida. Use P (Pix), C (Crédito) ou D (Débito)");
+                    "Forma de pagamento inválida. Use PIX, CREDITO ou DEBITO");
         }
 
         BigDecimal valorFinal = strategy.calcularValorFinal(request.valor());
 
         if (conta.getSaldo().compareTo(valorFinal) < 0) {
             throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
+                    HttpStatus.UNPROCESSABLE_ENTITY,
                     "Saldo insuficiente para realizar a transação");
         }
 

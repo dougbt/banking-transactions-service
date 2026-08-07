@@ -1,171 +1,185 @@
-# Sistema de Gestão Bancária - API REST
+# Banking Transactions API
 
-## 📋 Descrição
+A REST API for account management and financial transactions, built with Java 21 and Spring Boot. The project applies payment-specific fee rules, prevents negative balances, versions the database schema with Liquibase, and validates the main business flows with automated tests.
 
-Sistema de gestão bancária desenvolvido em Java com Spring Boot, oferecendo uma API REST para criação de contas e processamento de transações financeiras com diferentes formas de pagamento e taxas aplicáveis.
+## Features
 
-## 🚀 Tecnologias Utilizadas
+- Create and retrieve bank accounts
+- Process Pix, debit card, and credit card transactions
+- Apply payment fees through the Strategy pattern
+- Prevent duplicate accounts and insufficient-balance transactions
+- Manage schema changes and seed data with Liquibase
+- Expose application health information through Spring Boot Actuator
+- Run integration and unit tests with JUnit 5 and MockMvc
 
-- **Java 17**
-- **Spring Boot 3.x**
-- **Spring Data JPA**
-- **H2 Database** (em memória)
-- **Liquibase** (controle de schema)
-- **Maven** (gerenciamento de dependências)
-- **JUnit 5** (testes)
+## Technology stack
 
-## 🏗️ Arquitetura
+- Java 21
+- Spring Boot 3.5.4
+- Spring Web
+- Spring Data JPA
+- Jakarta Bean Validation
+- Liquibase
+- H2 Database
+- Maven Wrapper
+- JUnit 5 and MockMvc
+- Docker
+- GitHub Actions
 
-O projeto segue os princípios de **Clean Architecture** e **Domain-Driven Design**, organizado em camadas:
+## Architecture
 
-- **API Layer**: Controllers e DTOs
-- **Application Layer**: Services de aplicação
-- **Domain Layer**: Entidades, enums e interfaces
-- **Infrastructure Layer**: Repositórios e configurações
+The codebase uses a layered structure inspired by Clean Architecture:
 
-## 📊 Design Patterns Implementados
-
-- **Strategy Pattern**: Para diferentes formas de pagamento
-- **Repository Pattern**: Para acesso aos dados
-- **Factory Pattern**: Para criação das estratégias de transação
-- **DTO Pattern**: Para transferência de dados
-
-## 🔧 Como Executar
-
-### Pré-requisitos
-- Java 17+
-- Maven 3.6+
-
-### Executando a aplicação
-
-1. **Clone o repositório:**
-```bash
-git clone https://github.com/dougbt/Desafio-Tecnico-Transacoes.git
-cd Desafio-Tecnico-Ng-Billing
+```text
+src/main/java/br/com/ngbilling/DesafioTecnico/
+├── api/              # REST controllers and DTOs
+├── application/      # Application service implementations
+├── domain/           # Domain models, contracts, and transaction strategies
+├── infrastructure/   # Persistence adapters
+└── config/           # Cross-cutting configuration and exception handling
 ```
 
-2. **Execute a aplicação:**
+### Patterns used
+
+- **Strategy:** calculates fees for each payment method
+- **Factory:** registers and selects the appropriate transaction strategy
+- **Repository:** abstracts account persistence
+- **DTO:** defines the API input and output contracts
+
+## Business rules
+
+- Account numbers must be unique
+- An account balance cannot be negative
+- Pix transactions have no fee
+- Debit card transactions have a 3% fee
+- Credit card transactions have a 5% fee
+- A transaction is rejected when the account does not have enough balance
+
+## Running locally
+
+### Requirements
+
+- Java 21+
+- Git
+
+Clone the repository using the URL shown in GitHub's **Code** menu, then enter the project directory.
+
 ```bash
 ./mvnw spring-boot:run
 ```
 
-3. **Execute os testes:**
+The API will be available at `http://localhost:8080`.
+
+### H2 console
+
+- URL: `http://localhost:8080/h2-console`
+- JDBC URL: `jdbc:h2:mem:ngbillingdb`
+- Username: `root`
+- Password: empty
+
+## Running with Docker
+
+Build the image:
+
 ```bash
-./mvnw test
+docker build -t banking-transactions-api .
 ```
 
-4. **Acesse a aplicação:**
-- API: `http://localhost:8080`
-- Console H2: `http://localhost:8080/h2-console`
-  - JDBC URL: `jdbc:h2:mem:ngbillingdb`
-  - Username: `root`
-  - Password: (vazio)
+Run the container:
 
-## 📖 Endpoints da API
+```bash
+docker run --rm -p 8080:8080 banking-transactions-api
+```
 
-### 1. Criar Conta
+## API endpoints
+
+### Create an account
+
 ```http
 POST /conta
 Content-Type: application/json
 
 {
-  "numero_conta": 234,
+  "numeroConta": 234,
   "saldo": 180.37
 }
 ```
 
-**Resposta (201 Created):**
+Successful response: `201 Created`
+
 ```json
 {
-  "numero_conta": 234,
+  "numeroConta": 234,
   "saldo": 180.37
 }
 ```
 
-### 2. Buscar Conta
+### Retrieve an account
+
 ```http
 GET /conta?numero_conta=234
 ```
 
-**Resposta (200 OK):**
+Successful response: `200 OK`
+
 ```json
 {
-  "numero_conta": 234,
-  "saldo": 170.07
+  "numeroConta": 234,
+  "saldo": 180.37
 }
 ```
 
-### 3. Realizar Transação
+### Process a transaction
+
 ```http
 POST /transacao
 Content-Type: application/json
 
 {
-  "forma_pagamento": "D",
-  "numero_conta": 234,
-  "valor": 10
+  "formaPagamento": "DEBITO",
+  "numeroConta": 234,
+  "valor": 10.00
 }
 ```
 
-**Resposta (201 Created):**
+Accepted values for `formaPagamento`:
+
+- `PIX`
+- `DEBITO`
+- `CREDITO`
+
+Successful response: `201 Created`
+
 ```json
 {
-  "numero_conta": 234,
+  "numeroConta": 234,
   "saldo": 170.07
 }
 ```
 
-## 💳 Formas de Pagamento e Taxas
+Relevant error responses:
 
-| Forma | Código | Taxa |
-|-------|--------|------|
-| Pix | P | 0% |
-| Cartão de Débito | D | 3% |
-| Cartão de Crédito | C | 5% |
+- `400 Bad Request`: invalid input
+- `404 Not Found`: account not found
+- `409 Conflict`: duplicate account
+- `422 Unprocessable Entity`: insufficient balance
 
-## 🔒 Regras de Negócio
+## Tests
 
-- ✅ Não é permitido criar contas duplicadas
-- ✅ Não é permitido saldo negativo (sem cheque especial)
-- ✅ Taxas são aplicadas sobre o valor da transação
-- ✅ Transações alteram o saldo da conta permanentemente
+Run the full test suite:
 
-## 🧪 Dados de Teste
-
-A aplicação inicia com contas pré-cadastradas para facilitar os testes:
-
-- **Conta 123**: Saldo R$ 1.000,00
-- **Conta 456**: Saldo R$ 500,00
-
-## 📁 Estrutura do Projeto
-
-```
-src/
-├── main/
-│   ├── java/br/com/ngbilling/DesafioTecnico/
-│   │   ├── api/                    # Controllers e DTOs
-│   │   ├── application/            # Services de aplicação
-│   │   ├── domain/                 # Entidades e regras de negócio
-│   │   ├── infrastructure/         # Repositórios e configurações
-│   │   └── config/                 # Configurações gerais
-│   └── resources/
-│       ├── application.yaml        # Configurações da aplicação
-│       └── db/changelog/           # Scripts Liquibase
-└── test/
-    └── java/                       # Testes de integração
+```bash
+./mvnw test
 ```
 
-## 🎯 Status dos Testes
+The suite covers:
 
-Todos os testes de integração estão passando, cobrindo:
+- Account creation and retrieval
+- Missing accounts
+- Pix, debit, and credit fee calculations
+- Insufficient balance validation
+- Strategy implementations
 
-- ✅ Criação de contas
-- ✅ Busca de contas existentes e inexistentes
-- ✅ Transações com diferentes formas de pagamento
-- ✅ Validação de saldo insuficiente
-- ✅ Aplicação correta das taxas
+## Author
 
----
-
-**Desenvolvido por: Douglas Barcellos  
-**Data:** agosto de 2025
+Developed by **Douglas Barcellos**.
