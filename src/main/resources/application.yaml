@@ -1,9 +1,9 @@
 spring:
   application:
-    name: DesafioTecnico-NgBilling
+    name: banking-transactions-service
 
   datasource:
-    url: jdbc:h2:mem:ngbillingdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    url: jdbc:h2:mem:bankingdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     driver-class-name: org.h2.Driver
     username: root
     password:

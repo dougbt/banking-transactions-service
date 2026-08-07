@@ -31,7 +31,7 @@ A REST API for account management and financial transactions, built with Java 21
 The codebase uses a layered structure inspired by Clean Architecture:
 
 ```text
-src/main/java/br/com/ngbilling/DesafioTecnico/
+src/main/java/io/github/dougbt/banking/
 ├── api/              # REST controllers and DTOs
 ├── application/      # Application service implementations
 ├── domain/           # Domain models, contracts, and transaction strategies
@@ -73,7 +73,7 @@ The API will be available at `http://localhost:8080`.
 ### H2 console
 
 - URL: `http://localhost:8080/h2-console`
-- JDBC URL: `jdbc:h2:mem:ngbillingdb`
+- JDBC URL: `jdbc:h2:mem:bankingdb`
 - Username: `root`
 - Password: empty
 
@@ -82,13 +82,13 @@ The API will be available at `http://localhost:8080`.
 Build the image:
 
 ```bash
-docker build -t banking-transactions-api .
+docker build -t banking-transactions-service .
 ```
 
 Run the container:
 
 ```bash
-docker run --rm -p 8080:8080 banking-transactions-api
+docker run --rm -p 8080:8080 banking-transactions-service
 ```
 
 ## API endpoints
